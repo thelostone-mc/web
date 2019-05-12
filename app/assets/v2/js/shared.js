@@ -1579,3 +1579,5 @@ function check_balance_and_alert_user_if_not_enough(
   });
 
 }
+
+const isProd = () => location.hostname === 'gitcoin.co';
