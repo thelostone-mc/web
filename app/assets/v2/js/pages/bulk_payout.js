@@ -34,16 +34,16 @@ $(document).ready(function($) {
 
   $(document).on('input', '.input_amount', function(event) {
     event.preventDefault();
-    var input_amount = $(this).text();
-    var is_error = !$.isNumeric(input_amount) || input_amount < 0;
+    const input_amount = $(this).text();
+    const is_error = !$.isNumeric(input_amount) || input_amount < 0;
 
     if (is_error) {
       $(this).addClass('error');
       $(this).parents('tr').find('.amount').text(0);
     } else {
       $(this).removeClass('error');
-      var decimals = 3;
-      var amount = $('.toggleType').data('type') == 'no' ? input_amount : round(get_amount(input_amount), decimals);
+      const decimals = 3;
+      const amount = $('.toggleType').data('type') == 'no' ? input_amount : round(get_amount(input_amount), decimals);
 
       $(this).parents('tr').find('.amount').text(amount);
     }
@@ -63,10 +63,7 @@ $(document).ready(function($) {
     var transaction = document.transactions[i];
 
     if (!transaction) {
-      // msg
       _alert('All transactions have been sent.  Your bounty is now paid out.', 'info');
-
-      // show green checkmark
       $('#success_container').css('display', 'block');
       $('.row.content').css('display', 'none');
 
@@ -82,14 +79,13 @@ $(document).ready(function($) {
         if (error) {
           _alert({ message: error }, 'error');
         } else {
-          var url = 'https://' + etherscanDomain() + '/tx/' + txid;
-          var msg = 'This tx has been sent 👌 <a target=_blank href="' + url + '">[Etherscan Link]</a>';
+          const url = 'https://' + etherscanDomain() + '/tx/' + txid;
+          const msg = 'This tx has been sent 👌 <a target=_blank href="' + url + '">[Etherscan Link]</a>';
 
-          // send msg to frontend
           _alert(msg, 'info');
+
           sendTransaction(i + 1);
 
-          // tell frontend that this issue has a pending tx
           localStorage[$('#issueURL').val()] = JSON.stringify({
             timestamp: timestamp(),
             dataHash: null,
@@ -100,42 +96,51 @@ $(document).ready(function($) {
       };
 
       const contract_version = $('input[name=contract_version]').val();
-      var bounty = web3.eth.contract(
+
+      let bounty = web3.eth.contract(
         getBountyABI(contract_version)).
         at(bounty_address(contract_version)
         );
+
       var gas_dict = { gasPrice: web3.toHex($('#gasPrice').val() * Math.pow(10, 9)) };
 
       indicateMetamaskPopup();
-      // TODO: UPDATE BASED ON VERSION
-      bounty.killBounty(
-        $('#standard_bounties_id').val(),
-        gas_dict,
-        callback
-      );
+
+      switch (contract_version) {
+        case '2':
+          // TODO: std_bounties_2_contract
+          console.log('invoke std bounties contract');
+          break;
+        case '1':
+          bounty.killBounty(
+            $('#standard_bounties_id').val(),
+            gas_dict,
+            callback
+          );
+          break;
+        default:
+          console.error('unable to find contract version');
+      }
 
     } else {
-      // get form data
-      var email = '';
-      var github_url = $('#issueURL').val();
-      var from_name = document.contxt['github_handle'];
-      var username = transaction['data']['to'];
-      var amountInEth = transaction['data']['amount'];
-      var comments_priv = '';
-      var comments_public = '';
-      var from_email = '';
-      var accept_tos = $('#terms').is(':checked');
-      var tokenAddress = transaction['data']['token_address'];
-      var expires = 9999999999;
+      let email = '';
+      const github_url = $('#issueURL').val();
+      const from_name = document.contxt['github_handle'];
+      const username = transaction['data']['to'];
+      const amountInEth = transaction['data']['amount'];
+      let comments_priv = '';
+      let comments_public = '';
+      let from_email = '';
+      const accept_tos = $('#terms').is(':checked');
+      const tokenAddress = transaction['data']['token_address'];
+      const expires = 9999999999;
 
       var success_callback = function(txid) {
-        var url = 'https://' + etherscanDomain() + '/tx/' + txid;
-        var msg = 'This payment has been sent 👌 <a target=_blank href="' + url + '">[Etherscan Link]</a>';
+        const url = 'https://' + etherscanDomain() + '/tx/' + txid;
+        const msg = 'This payment has been sent 👌 <a target=_blank href="' + url + '">[Etherscan Link]</a>';
 
-        // send msg to frontend
         _alert(msg, 'info');
 
-        // text transaction
         sendTransaction(i + 1);
       };
       var failure_callback = function() {
@@ -143,7 +148,23 @@ $(document).ready(function($) {
         $.noop();
       };
 
-      return sendTip(email, github_url, from_name, username, amountInEth, comments_public, comments_priv, from_email, accept_tos, tokenAddress, expires, success_callback, failure_callback, false);
+      indicateMetamaskPopup();
+      return sendTip(
+        email,
+        github_url,
+        from_name,
+        username,
+        amountInEth,
+        comments_public,
+        comments_priv,
+        from_email,
+        accept_tos,
+        tokenAddress,
+        expires,
+        success_callback,
+        failure_callback,
+        false
+      );
     }
   };
 
@@ -160,10 +181,10 @@ $(document).ready(function($) {
       _alert('You do not have any transactions to payout.  Please add payees to the form.', 'error');
       return;
     }
-    var usernames = $('.username-search');
+    const usernames = $('.username-search');
 
-    for (var i = 0; i < usernames.length; i++) {
-      var username = usernames[i].textContent.trim();
+    for (let i = 0; i < usernames.length; i++) {
+      const username = usernames[i].textContent.trim();
 
       if (username === null || username === '' || username === '@') {
         _alert('Please provide a valid recipient Github username', 'error');
@@ -185,19 +206,19 @@ $(document).ready(function($) {
 });
 
 var get_amount = function(percent) {
-  var total_amount = $('#amount').val();
+  const total_amount = $('#amount').val();
 
   return percent * 0.01 * total_amount;
 };
 
 var add_row = function() {
-  let bountyId = $('#bountyId').val();
-  var num_rows = $('#payout_table tbody').find('tr.new-user').length;
-  var input_amount = num_rows <= 1 ? 100 : '';
-  var denomination = $('#token_name').text();
-  var amount = get_amount(input_amount);
+  const bountyId = $('#bountyId').val();
+  const num_rows = $('#payout_table tbody').find('tr.new-user').length;
+  const input_amount = num_rows <= 1 ? 100 : '';
+  const denomination = $('#token_name').text();
+  const amount = get_amount(input_amount);
   let username = '';
-  var html = `
+  const html = `
     <tr class="new-user">
       <td class="pl-0 pb-0">
         <div class="pl-0">
@@ -232,7 +253,7 @@ var add_row = function() {
   $('#payout_table tbody').append(html);
   userSearch('.username-search:last', true);
   $('body .username-search').each(function() {
-    $(this).on('select2:select', event => {
+    $(this).on('select2:select', () => {
       rateUser($(this));
     });
   });
@@ -242,13 +263,13 @@ var add_row = function() {
 
 var get_total_cost = function() {
   var rows = $('#payout_table tbody tr.new-user');
-  var total = 0;
+  let total = 0;
 
   for (i = 0; i < rows.length; i += 1) {
     var $rows = $(rows[i]);
-    var amount = parseFloat($rows.find('.amount').text());
-    var username = $rows.find('.username-search').text();
-    var is_error = !$.isNumeric(amount) || amount <= 0 || username == '' || username == '@';
+    const amount = parseFloat($rows.find('.amount').text());
+    const username = $rows.find('.username-search').text();
+    const is_error = !$.isNumeric(amount) || amount <= 0 || username == '' || username == '@';
 
     if (!is_error) {
       total += amount;
@@ -266,14 +287,14 @@ var update_registry = function(coinbase) {
     return;
   }
 
-  var num_rows = $('#payout_table tbody').find('tr.new-user').length;
-  var tc = round(get_total_cost(), 2);
-  var denomination = $('#token_name').text();
-  var original_amount = $('#original_amount').val();
-  var net = round(original_amount - tc, 2);
-  var over = round((original_amount - get_total_cost()) * -1, 4);
-  var addr = coinbase.substring(38);
-  var pay_with_bounty = $('#pay_with_bounty').is(':checked');
+  const num_rows = $('#payout_table tbody').find('tr.new-user').length;
+  const tc = round(get_total_cost(), 2);
+  const denomination = $('#token_name').text();
+  const original_amount = $('#original_amount').val();
+  const net = round(original_amount - tc, 2);
+  const over = round((original_amount - get_total_cost()) * -1, 4);
+  const addr = coinbase.substring(38);
+  const pay_with_bounty = $('#pay_with_bounty').is(':checked');
 
   $('#total_cost').html(tc + ' ' + denomination);
 
@@ -321,9 +342,9 @@ var update_registry = function(coinbase) {
 
   for (let j = 0; j <= num_rows; j++) {
 
-    var $row = $('#payout_table tbody').find('tr:nth-child(' + ((j * 2) + 1) + ')');
-    var amount = parseFloat($row.find('.amount').text());
-    var username = $row.find('.username-search').text();
+    const $row = $('#payout_table tbody').find('tr:nth-child(' + ((j * 2) + 1) + ')');
+    const amount = parseFloat($row.find('.amount').text());
+    const username = $row.find('.username-search').text();
 
     if (username == '')
       continue;
@@ -341,20 +362,20 @@ var update_registry = function(coinbase) {
       }
     };
 
-    var is_error = !$.isNumeric(amount) || amount <= 0 || username == '' || username == '@';
+    const is_error = !$.isNumeric(amount) || amount <= 0 || username == '' || username == '@';
 
-    if (!is_error)
+    if (!is_error) {
       transactions.push(transaction);
+    }
   }
 
 
   // paint on screen
   $('#transaction_registry tr.entry').remove();
-  var k = 0;
 
-  for (k = 0; k < transactions.length; k += 1) {
-    var trans = transactions[k];
-    var html = "<tr class='entry entry_" + trans['id'] + "'><td>" + trans['id'] + '</td><td>' + trans['amount'] + '</td><td>' + trans['reason'] + '</td></tr>';
+  for (let k = 0; k < transactions.length; k += 1) {
+    const trans = transactions[k];
+    const html = "<tr class='entry entry_" + trans['id'] + "'><td>" + trans['id'] + '</td><td>' + trans['amount'] + '</td><td>' + trans['reason'] + '</td></tr>';
 
     $('#transaction_registry').append(html);
   }
@@ -393,7 +414,7 @@ $(document).on('click', '.user-fulfiller', function(event) {
       $search = newSelect.data('select2').dropdown.$search || newSelect.data('select2').selection.$search;
     }
   });
+
   $search.val(term);
   $search.trigger('input');
-
 });
