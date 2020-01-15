@@ -1,7 +1,7 @@
 #migrates the info on one grant to another
 
-old_grant_id = 128
-new_grant_id = 200
+old_grant_id = 7
+new_grant_id = 10
 
 from grants.models import Grant
 
@@ -34,4 +34,5 @@ for obj in old_grant.clr_matches.all():
 
 old_grant.save()
 old_grant.hidden = True
+old_grant.link_to_new_grant = new_grant
 new_grant.save()
