@@ -1421,9 +1421,11 @@ const build_uri_for_pull_bounty_from_api = function() {
   if (typeof document.issueNetwork != 'undefined') {
     uri = uri + '&network=' + document.issueNetwork;
   }
+
   if (typeof document.issue_stdbounties_id != 'undefined') {
     uri = uri + '&standard_bounties_id=' + document.issue_stdbounties_id;
   }
+
   if (typeof document.eventTag != 'undefined') {
     uri = uri + '&event_tag=' + document.eventTag;
   }
@@ -1432,45 +1434,30 @@ const build_uri_for_pull_bounty_from_api = function() {
 
 var pull_bounty_from_api = function() {
   $.get(build_uri_for_pull_bounty_from_api()).then(results => {
-    // special case: do not sanitize issue_description
-    // before we pass it to the markdown parser
     return sanitizeAPIResults(results, 'issue_description');
   }).then(function(results) {
-    let nonefound = true;
-    // potentially make this a lot faster by only pulling the specific issue required
 
-    for (let i = 0; i < results.length; i++) {
-      var result = results[i];
-      // if the result from the database matches the one in question.
+    const result = results[0];
 
-      if (normalizeURL(result['github_url']) == normalizeURL(document.issueURL)) {
-        nonefound = false;
+    if (result && normalizeURL(result['github_url']) == normalizeURL(document.issueURL)) {
+      build_detail_page(result);
+      do_actions(result);
+      render_activity(result, results);
 
-        build_detail_page(result);
+      document.result = result;
 
-        do_actions(result);
-
-        render_activity(result, results);
-
-        document.result = result;
-
-        if (document.result.event && localStorage['pendingProject']) {
-          projectModal(document.result.pk);
-        }
-
-        if (typeof promptPrivateInstructions !== 'undefined' && result.repo_type === 'private') {
-          repoInstructions();
-        }
-        return;
+      if (document.result.event && localStorage['pendingProject']) {
+        projectModal(document.result.pk);
       }
-    }
-    if (nonefound) {
+      if (typeof promptPrivateInstructions !== 'undefined' && result.repo_type === 'private') {
+        repoInstructions();
+      }
+    } else {
       $('#primary_view').css('display', 'none');
-      // is there a pending issue or not?
       $('.nonefound').css('display', 'block');
     }
-  }).fail(function(result) {
-    console.log(result);
+  }).fail(function(error) {
+    console.log(error);
     _alert({ message: gettext('got an error. please try again, or contact support@gitcoin.co') }, 'error');
     $('#primary_view').css('display', 'none');
   }).always(function() {
@@ -1480,7 +1467,6 @@ var pull_bounty_from_api = function() {
 
 
 const process_activities = function(result, bounty_activities) {
-
   const activity_names = {
     new_bounty: gettext('Bounty Created'),
     start_work: gettext('Work Started'),
@@ -1643,6 +1629,8 @@ const only_one_approve = function(activities) {
 };
 
 const render_activity = function(result, all_results) {
+  console.log(all_results);
+
   let all_activities = [];
 
   (all_results || []).forEach(result => {
