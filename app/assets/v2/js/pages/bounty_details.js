@@ -1442,7 +1442,8 @@ var pull_bounty_from_api = function() {
     if (result && normalizeURL(result['github_url']) == normalizeURL(document.issueURL)) {
       build_detail_page(result);
       do_actions(result);
-      render_activity(result, results);
+      populateActivities(result.activities);
+      render_activity(result);
 
       document.result = result;
 
@@ -1465,8 +1466,50 @@ var pull_bounty_from_api = function() {
   });
 };
 
+const populateActivities = activities => {
+  const submission_activities = [
+    'work_submitted'
+  ];
 
-const process_activities = function(result, bounty_activities) {
+  const pending_applicant_activities = [
+    'start_work'
+  ];
+
+  const work_started_activities = [
+    'worker_applied'
+  ];
+
+  const activity_names = [
+    'new_bounty',
+    'start_work',
+    'stop_work',
+    'work_submitted',
+    'work_done',
+    'worker_approved',
+    'worker_rejected',
+    'worker_applied',
+    'increased_bounty',
+    'killed_bounty',
+    'new_crowdfund',
+    'new_tip',
+    'receive_tip',
+    'bounty_abandonment_escalation_to_mods',
+    'bounty_abandonment_warning',
+    'bounty_removed_slashed_by_staff',
+    'bounty_removed_by_staff',
+    'bounty_removed_by_funder',
+    'bounty_changed',
+    'extend_expiration'
+  ];
+
+  activities.forEach(activity => {
+    console.log(activity);
+    
+  });
+};
+
+const process_activities = function(result) {
+
   const activity_names = {
     new_bounty: gettext('Bounty Created'),
     start_work: gettext('Work Started'),
@@ -1494,9 +1537,7 @@ const process_activities = function(result, bounty_activities) {
   const is_open = result['is_open'];
   const _result = [];
 
-  bounty_activities = bounty_activities || [];
-
-  bounty_activities.forEach(function(_activity) {
+  result.activities.forEach(function(_activity) {
     const type = _activity.activity_type;
 
     if (type === 'unknown_event') {
@@ -1628,20 +1669,14 @@ const only_one_approve = function(activities) {
   }
 };
 
-const render_activity = function(result, all_results) {
-  console.log(all_results);
+const render_activity = function(result) {
 
-  let all_activities = [];
-
-  (all_results || []).forEach(result => {
-    all_activities = all_activities.concat(result.activities);
-  });
-
-  let activities = process_activities(result, all_activities);
+  let activities = process_activities(result);
 
   activities = activities.slice().sort(function(a, b) {
     return a['created_on'] < b['created_on'] ? -1 : 1;
   }).reverse();
+
   only_one_approve(activities);
 
   var html = '<div class="row box activity"><div class="col-12 empty"><p>' + gettext('There\'s no activity yet!') + '</p></div></div>';
