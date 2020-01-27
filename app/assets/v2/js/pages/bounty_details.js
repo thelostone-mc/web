@@ -482,7 +482,8 @@ const isAvailableIfReserved = function(bounty) {
 };
 
 const isBountyOwner = result => {
-  if (document.is_bounties_network) {
+  
+  if (is_bounties_network) {
     return isFundedByCurrentAddress(result) && isBountyOwnerPerLogin(result);
   }
   return isBountyOwnerPerLogin(result);
@@ -1049,9 +1050,9 @@ const is_current_user_approved = function(result) {
   return false;
 };
 
-const is_funder_notifiable = (result) => {
+const is_funder_notifiable = result=> {
   if (result['funder_last_messaged_on']) {
-	      return false;
+    return false;
   }
   return true;
 };
@@ -1065,7 +1066,6 @@ var do_actions = function(result) {
   const is_still_on_happy_path = result['status'] == 'reserved' || result['status'] == 'open' || result['status'] == 'started' || result['status'] == 'submitted' || (can_submit_after_expiration_date && result['status'] == 'expired');
   const needs_review = result['needs_review'];
   const is_open = result['is_open'];
-  const is_bounties_network = document.is_bounties_network;
 
   let bounty_path = result['network'] + '/' + result['standard_bounties_id'];
 
@@ -1442,7 +1442,15 @@ var pull_bounty_from_api = function() {
     if (result && normalizeURL(result['github_url']) == normalizeURL(document.issueURL)) {
       build_detail_page(result);
       do_actions(result);
-      render_activity(result, results);
+      
+      // TODO: PORT TO VUE 
+      populateAllActivities(result);
+      if (result.status != 'cancelled') {
+        // POPULATE SHIT 
+      }
+      // END TODO
+
+      render_activity(result);
 
       document.result = result;
 
@@ -1465,8 +1473,122 @@ var pull_bounty_from_api = function() {
   });
 };
 
+const populatePendingActivities= result => {
 
-const process_activities = function(result, bounty_activities) {
+}
+
+/**
+ * Populates read only activity action 
+ * @param {*} result 
+ */
+const populateAllActivities = result => {
+
+  const activity_labels = {
+    new_bounty: gettext('Bounty Funded'),
+    start_work: gettext('Started Working on this bounty'),
+    stop_work: gettext('Work Stopped'),
+    work_submitted: gettext('Work Submitted'),
+    work_done: gettext('Bounty Paid Out'),
+    worker_approved: gettext('Approved'),
+    worker_rejected: gettext('Declined Contributor'),
+    worker_applied: gettext('has applied to work on this bounty'),
+    increased_bounty: gettext('Bounty amount has been increased to'),
+    killed_bounty: gettext('Bounty has been cancelled by the funder'),
+    new_crowdfund: gettext('New Crowdfund Contribution of'),
+    new_tip: gettext('Tip Sent'),
+    bounty_abandonment_escalation_to_mods: gettext('Escalated for Abandonment of Bounty'),
+    bounty_abandonment_warning: gettext('Warned for Abandonment of Bounty'),
+    bounty_removed_slashed_by_staff: gettext('Dinged and Removed from Bounty by Staff'),
+    bounty_removed_by_staff: gettext('Removed from Bounty by Staff'),
+    bounty_removed_by_funder: gettext('Removed from Bounty by Funder'),
+    bounty_changed: gettext('Bounty Details Updated'),
+    extend_expiration: gettext('Extended Bounty Expiration')
+  };
+
+  const activities = result.activities.slice().sort(function(a, b) {
+    return a['created'] < b['created'] ? -1 : 1;
+  }).reverse();
+
+  let all_activities = [];
+
+  activities.forEach(activity => {
+    const type = activity.activity_type;
+    const activity_age = timeDifference(new Date(), new Date(activity.created));
+
+    let _activity = {
+      'type': type,
+      'age': activity_age,
+      'label': activity_labels[type],
+      'profile': activity.profile
+    };
+
+    if (activity_labels[type]) {
+      const metadata = activity.metadata;
+      if (type == 'new_tip') {        
+        const amount = metadata.amount;
+        const token = metadata.token_name;
+        const to = metadata.to_username;
+        const text = `
+          ( <div class="tag token">
+            <p>
+              <span>${amount} ${token}</span>
+            </p>
+          </div> ) to
+          <a href="/profile/${to}">${to}</a>
+        `;
+        _activity.label = activity_labels[type] +  ' ' + text;
+
+      } else if (type == 'work_submitted') {
+        const fulfillment = metadata.fulfillment;
+        _activity.label = activity_labels[type] +  ' ' + `<a href="${fulfillment.fulfiller_github_url}" target="_blank">View Work</a>`;
+      } else if (type == 'work_done') {
+        const fulfillment = metadata.fulfillment;
+        _activity.label = activity_labels[type] + 'to address' +fulfillment.fulfiller_address
+      } else if (type == 'worker_approved') {
+        _activity.label = `Approved <a href="/profile/${metadata.worker_handle}">${metadata.worker_handle}</a> to start work on this bounty`;
+      } else if (type == 'worker_rejected') {
+        _activity.label = `Declined <a href="/profile/${metadata.worker_handle}">${metadata.worker_handle}'s</a> request to work on this bounty`;
+
+      } else if (type == 'worker_applied') {
+        const text = `<a href="/profile/${activity.profile.handle}">${activity.profile.handle}</a>`;
+        _activity.label = text + ' ' + activity_labels[type];
+
+      } else if (type == 'increased_bounty') {        
+        const amount = token_value_to_display(metadata.new_bounty.value_in_token);
+        const token = metadata.new_bounty.token_name;
+        const text = `
+          <div class="tag token">
+            <p>
+              <span>${amount} ${token}</span>
+            </p>
+          </div>
+          `
+        _activity['label'] = activity_labels[type] + ' ' +  text;
+      } else if (type == 'new_crowdfund') {
+        const amount = metadata.amount;
+        const token = metadata.token_name;
+        const from = metadata.from_name;
+        
+        const text = `
+          <div class="tag token">
+            <p>
+              <span>${amount} ${token}</span>
+            </p>
+          </div> from
+          <a href="/profile/${from}">${from}</a>
+        `;
+        _activity.label = activity_labels[type] + ' ' + text;
+      }
+
+      all_activities.push(_activity)
+    }
+  });
+
+  console.log('ALL ACTIVITIES', all_activities); 
+};
+
+const process_activities = function(result) {
+
   const activity_names = {
     new_bounty: gettext('Bounty Created'),
     start_work: gettext('Work Started'),
@@ -1494,9 +1616,7 @@ const process_activities = function(result, bounty_activities) {
   const is_open = result['is_open'];
   const _result = [];
 
-  bounty_activities = bounty_activities || [];
-
-  bounty_activities.forEach(function(_activity) {
+  result.activities.forEach(function(_activity) {
     const type = _activity.activity_type;
 
     if (type === 'unknown_event') {
@@ -1628,20 +1748,14 @@ const only_one_approve = function(activities) {
   }
 };
 
-const render_activity = function(result, all_results) {
-  console.log(all_results);
+const render_activity = function(result) {
 
-  let all_activities = [];
-
-  (all_results || []).forEach(result => {
-    all_activities = all_activities.concat(result.activities);
-  });
-
-  let activities = process_activities(result, all_activities);
+  let activities = process_activities(result);
 
   activities = activities.slice().sort(function(a, b) {
     return a['created_on'] < b['created_on'] ? -1 : 1;
   }).reverse();
+
   only_one_approve(activities);
 
   var html = '<div class="row box activity"><div class="col-12 empty"><p>' + gettext('There\'s no activity yet!') + '</p></div></div>';
