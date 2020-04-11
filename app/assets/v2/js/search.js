@@ -1,146 +1,64 @@
-function search(elem) {
-  var selectItem = elem || '#search';
-
-  $(selectItem).each(function() {
-    if (!$(this).length) {
-      return;
-    }
-    var name = $(this).attr('name');
-
-    $(this).select2({
-      ajax: {
-        url: '/api/v0.1/search/',
-        dataType: 'json',
-        delay: 250,
-        data: function(params) {
-
-          let query = {
-            term: params.term[0] === '@' ? params.term.slice(1) : params.term
-          };
-
-          return query;
-        },
-        processResults: function(data) {
-          return {
-            results: data
-          };
-        },
-        cache: true
-      },
-      theme: 'gc-search',
-      placeholder: '<i class="fas fa-search fa-fw"></i>',
-      allowClear: true,
-
-      // dropdownAutoWidth: true,
-      minimumInputLength: 3,
-      escapeMarkup: function(markup) {
-        return markup;
-      },
-      templateResult: formatRow
-    });
-
-    // fix for wrong position on select open
-    var select2Instance = $(this).data('select2');
-
-    select2Instance.on('results:message', function(params) {
-      this.dropdown._resizeDropdown();
-      this.dropdown._positionDropdown();
-    });
-
-    function formatRow(element) {
-
-      if (element.loading) {
-        return element.text;
+if (document.getElementById('gc-search')) {
+  var app = new Vue({
+    delimiters: [ '[[', ']]' ],
+    el: '#gc-search',
+    data: {
+      term: '',
+      results: [],
+      currentTab: 0,
+      source_types: [
+        'Profile',
+        'Bounty',
+        'Grant',
+        'Kudos',
+        'Quest',
+        'Page'
+      ],
+      labels: {
+        'Profile': 'Profiles',
+        'Bounty': 'Bounties',
+        'Grant': 'Grants',
+        'Kudos': 'Kudos',
+        'Quest': 'Quests',
+        'Page': 'Pages'
       }
-      var markup;
+    },
+    mounted() {
+      this.search();
+    },
+    created() {
+      this.search();
+    },
+    methods: {
+      search: async function() {
+        let vm = this;
 
-      markup = `<div data-url="${element.url}" class="d-flex m-2 align-items-center element-search-result search-result">
-                      <div style="min-width: 0;width: 100%;">
-                        <img class=search__avatar src="${element.img_url}">
-                        <div class="d-flex justify-content-between">
-                          <div class="element-title search__title">${element.title}</div>
-                        </div>
-                        <div class="text-truncate element-description search-result__description">${element.description}</div>
-                        <div class="element-type tag float-right">View ${element.source_type}</div>
-                      <div>
-                    </div>`;
+        if (vm.term.length > 3) {
+          // const response = await fetchData(
+          //   `/api/v0.1/search/?term=${vm.term}`,
+          //   "GET"
+          // );
+          // vm.results = groupBySource(response);
 
-      return markup;
+          const response = [{'title': 'Send Tip | Gitcoin | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/tip', 'img_url': 'https://s.gitcoin.co/static/v2/images/helmet.6e489cc7352e.png', 'source_type': 'Page'}, {'title': 'Terms of Use | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/legal/terms', 'img_url': '/static/v2/images/helmet.svg', 'source_type': 'Page'}, {'title': 'About | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/about', 'img_url': '/static/v2/images/helmet.svg', 'source_type': 'Page'}, {'title': 'Help | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/help', 'img_url': 'https://s.gitcoin.co/static/v2/card/thumb.ecccf138fcf3.png', 'source_type': 'Page'}, {'title': 'Whitepaper | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/whitepaper', 'img_url': 'https://s.gitcoin.co/static/v2/card/thumb.ecccf138fcf3.png', 'source_type': 'Page'}, {'title': 'Whitepaper | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/whitepaper/accesscode', 'img_url': 'https://s.gitcoin.co/static/v2/card/thumb.ecccf138fcf3.png', 'source_type': 'Page'}, {'title': 'Faucet | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/faucet', 'img_url': 'https://s.gitcoin.co/static/v2/card/thumb.ecccf138fcf3.png', 'source_type': 'Page'}, {'title': 'Mission | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/mission', 'img_url': 'https://s.gitcoin.co/static/v2/images/grow_open_source.cf1e7df2d9f9.png', 'source_type': 'Page'}, {'title': 'Labs | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/labs', 'img_url': 'https://c.gitcoin.co/labs/Articles-Announcing_Gitcoin_Labs.png', 'source_type': 'Page'}, {'title': '$3.3m in  Results | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/results', 'img_url': 'https://s.gitcoin.co/static/v2/images/results_preview.666ede4f3958.gif', 'source_type': 'Page'}, {'title': 'Activity Feed | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/activity', 'img_url': '/static/v2/images/helmet.svg', 'source_type': 'Page'}, {'title': 'Kudos | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/kudos', 'img_url': 'https://s.gitcoin.co/static/v2/images/kudos/assets/kudos-image.15af481a0fdd.png', 'source_type': 'Page'}, {'title': 'Kudos Marketplace | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/kudos/marketplace', 'img_url': 'https://s.gitcoin.co/static/v2/images/kudos/assets/kudos-image.15af481a0fdd.png', 'source_type': 'Page'}, {'title': '  Quests | Gitcoin', 'description': '', 'url': 'https://gitcoin.co/quests', 'img_url': 'https://s.gitcoin.co/static/v2/images/quests/orb_small.b0235b81c961.png', 'source_type': 'Page'}, {'title': 'Gitcoin Genesis', 'description': 'The Gitcoin Genesis Badge is the rarest of the Gitcoin team badges.  Owners of this badge contributed to Gitcoin in a meaningful way in the way-back-when.', 'url': 'https://gitcoin.co/kudos/3/gitcoin_genesis', 'img_url': 'https://gitcoin.co/dynamic/kudos/3/gitcoin_genesis', 'source_type': 'Kudos'}, {'title': 'Gitcoin Bot', 'description': 'Just for fun, this Gitcoin Robot is a way of celebrating the contributors in your life.', 'url': 'https://gitcoin.co/kudos/232/gitcoin_bot', 'img_url': 'https://gitcoin.co/dynamic/kudos/232/gitcoin_bot', 'source_type': 'Kudos'}, {'title': 'Gitcoin Minibot', 'description': 'Just for fun, this Gitcoin Robot is a way of celebrating the contributors in your life.', 'url': 'https://gitcoin.co/kudos/235/gitcoin_minibot', 'img_url': 'https://gitcoin.co/dynamic/kudos/235/gitcoin_minibot', 'source_type': 'Kudos'}, {'title': 'Gitcoin Sun', 'description': 'A very special, limited edition, Kudos, only for sustainers of Gitcoin.', 'url': 'https://gitcoin.co/kudos/237/gitcoin_sun', 'img_url': 'https://gitcoin.co/dynamic/kudos/237/gitcoin_sun', 'source_type': 'Kudos'}, {'title': 'Gitcoin Og', 'description': 'You are an OG.  You are a pioneer of Gitcoin open source!', 'url': 'https://gitcoin.co/kudos/246/gitcoin_og', 'img_url': 'https://gitcoin.co/dynamic/kudos/246/gitcoin_og', 'source_type': 'Kudos'}, {'title': 'Gitcoin Tree', 'description': 'A tree that sustains open source.  Just for fun', 'url': 'https://gitcoin.co/kudos/255/gitcoin_tree', 'img_url': 'https://gitcoin.co/dynamic/kudos/255/gitcoin_tree', 'source_type': 'Kudos'}];
+
+          vm.results = groupBySource(response);
+
+        } else {
+          vm.results = {};
+        }
+      }
     }
-
-    $(selectItem).on('select2:unselecting', function(e) {
-      $(this).val(null).trigger('change');
-      document.selected_element = null;
-      e.preventDefault();
-    });
-    $(selectItem).on('select2:select', function(e) {
-      console.log(e);
-      console.log($('#search').val());
-      var data = e.params.data;
-
-      console.log(data);
-    });
   });
 }
 
-$('document').ready(function() {
-  $('#search_container').html('<select id=search name="search" class="custom-select gc-border-blue"><option></option></select>');
-  search();
+const groupBySource = results => {
+  let grouped_result = {};
 
-  $('body').on('click', '.search_autocomplete', function(e) {
-    var search_term = $(this).text();
+  results.map(result => {
+    const source_type = result.source_type;
 
-    e.preventDefault();
+    grouped_result[source_type] ? grouped_result[source_type].push(result) : grouped_result[source_type] = [result];
   });
-
-  $(document).on ('click', '.select2-container--gc-search .element-search-result', function() {
-    document.location.href = $(this).data('url');
-  });
-
-  $('.select2-nosearch').select2({
-    minimumResultsForSearch: 20
-  });
-
-  // $('.select2-search').select2({});
-
-  // listen for keyups in both input widget AND dropdown
-  $('body').on('keyup', '.select2-container--gc-search', function(e) {
-    var KEYS = { UP: 38, DOWN: 40, ENTER: 13 };
-    var $sel = $('.select2-container--gc-search.select2-container--open');
-
-    if ($sel.length) {
-      var target;
-
-      if (e.keyCode === KEYS.DOWN && !e.altKey) {
-        target = $('.select2-container--gc-search .select2-results__option.selected');
-        if (!target.length) {
-          target = $('.select2-container--gc-search .select2-results__option:first-child');
-        } else if (target.next().length) {
-          target.removeClass('selected');
-          target = target.next();
-        }
-        target.addClass('selected');
-      } else if (e.keyCode === KEYS.UP) {
-        target = $('.select2-container--gc-search .select2-results__option.selected');
-        if (!target.length) {
-          target = $('.select2-container--gc-search .select2-results__option:first-child');
-        } else if (target.prev().length) {
-          target.removeClass('selected');
-          target = target.prev();
-        }
-        target.addClass('selected');
-      } else if (e.keyCode === KEYS.ENTER) {
-        target = $('.select2-container--gc-search .select2-results__option.selected');
-        var url = target.find('.search-result').data('url');
-
-        if (target && url) {
-          document.location.href = url;
-        }
-      }
-    }
-
-  });
-
-
-});
-
+  return grouped_result;
+};
