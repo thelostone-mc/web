@@ -86,6 +86,45 @@
       </div>
     </div>
   </div>
+
+  <body>
+    <script
+      src="https://www.paypal.com/sdk/js?client-id=ARv6LvORvfM1li08HYFgy9HLH919lF7KP8Piqfia1HyQ4y7hg6oRgz5C8K03LLLzKhjn91-Dpz2pWkoK"> // Required. Replace SB_CLIENT_ID with your sandbox client ID.
+    </script>
+  
+    <div id="paypal-button-container"></div>
+  
+    <script>
+      paypal.Buttons(
+        {
+          createOrder: function(data, actions) {
+            return actions.order.create({
+              application_context : { 
+                shipping_preference: "NO_SHIPPING"
+              },
+              purchase_units: [{
+                payee: {
+                  email_address: 'fronk@derp.com'
+                },
+                amount: {
+                  value: '0.04'
+                }
+              }]
+            });
+          },
+          onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+              alert('Transaction completed by ' + details.payer.name.given_name);
+              // TODO FIRE API TO SAVE 
+              console.log(details);
+            });
+          }
+        }
+      ).render('#paypal-button-container');
+    </script>
+  </body>
+
+
   <div class="form-group">
     <h5>{% trans "ETH Account Preferences" %}</h5>
   </div>
