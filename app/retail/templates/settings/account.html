@@ -88,8 +88,14 @@
   </div>
 
   <body>
+    <!-- SANDBOX -->
+    <!-- <script
+      src="https://www.paypal.com/sdk/js?client-id=ARv6LvORvfM1li08HYFgy9HLH919lF7KP8Piqfia1HyQ4y7hg6oRgz5C8K03LLLzKhjn91-Dpz2pWkoK&currency=INR"> // Required. Replace SB_CLIENT_ID with your sandbox client ID.
+    </script> -->
+
+    <!-- LIVE -->
     <script
-      src="https://www.paypal.com/sdk/js?client-id=ARv6LvORvfM1li08HYFgy9HLH919lF7KP8Piqfia1HyQ4y7hg6oRgz5C8K03LLLzKhjn91-Dpz2pWkoK"> // Required. Replace SB_CLIENT_ID with your sandbox client ID.
+    src="https://www.paypal.com/sdk/js?client-id=Abrgsrd-R0V9dPEcqjBeV8E30-xn3-fQXjsVJ0rzz4-9CqM-m453n_EWiMIPnbhKiakZQbp54eQdzrNP"> 
     </script>
   
     <div id="paypal-button-container"></div>
@@ -104,10 +110,11 @@
               },
               purchase_units: [{
                 payee: {
-                  email_address: 'fronk@derp.com'
+                  // email_address: 'aditya.anandmc@gmail.com' // SANDBOX
+                  email_address: 'kevin@gitcoin.co' // SANDBOX
                 },
                 amount: {
-                  value: '0.04'
+                  value: '1'
                 }
               }]
             });
