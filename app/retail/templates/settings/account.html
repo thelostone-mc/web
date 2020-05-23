@@ -89,17 +89,23 @@
 
   <body>
     <!-- SANDBOX -->
-    <!-- <script
+    <script
       src="https://www.paypal.com/sdk/js?client-id=ARv6LvORvfM1li08HYFgy9HLH919lF7KP8Piqfia1HyQ4y7hg6oRgz5C8K03LLLzKhjn91-Dpz2pWkoK&currency=INR"> // Required. Replace SB_CLIENT_ID with your sandbox client ID.
+    </script>
+
+    <!-- <script
+      src="https://www.paypal.com/sdk/js?client-id=ARv6LvORvfM1li08HYFgy9HLH919lF7KP8Piqfia1HyQ4y7hg6oRgz5C8K03LLLzKhjn91-Dpz2pWkoK&currency=EUR">
     </script> -->
 
     <!-- LIVE -->
-    <script
+    <!-- <script
     src="https://www.paypal.com/sdk/js?client-id=Abrgsrd-R0V9dPEcqjBeV8E30-xn3-fQXjsVJ0rzz4-9CqM-m453n_EWiMIPnbhKiakZQbp54eQdzrNP"> 
-    </script>
+    </script> -->
   
     <div id="paypal-button-container"></div>
   
+    50 USD // INDIA 
+    
     <script>
       paypal.Buttons(
         {
@@ -110,20 +116,23 @@
               },
               purchase_units: [{
                 payee: {
-                  // email_address: 'aditya.anandmc@gmail.com' // SANDBOX
-                  email_address: 'kevin@gitcoin.co' // SANDBOX
+                  email_address: 'india@derp.com' // SANDBOX
+                  // email_address: 'kevin@gitcoin.co' // LIVE
                 },
                 amount: {
-                  value: '1'
+                  value: '10',
+                  currency_code: 'INR'
                 }
               }]
             });
           },
           onApprove: function(data, actions) {
-            return actions.order.capture().then(function(details) {
+            return actions.order.capture().then(function(details, x) {
               alert('Transaction completed by ' + details.payer.name.given_name);
               // TODO FIRE API TO SAVE 
               console.log(details);
+              console.log(x);
+              
             });
           }
         }
