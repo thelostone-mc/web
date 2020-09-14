@@ -173,10 +173,22 @@ if (document.getElementById('grants-showcase')) {
       setCurrentType: function(currentType, q) {
         this.current_type = currentType;
 
-        if (this.current_type === 'all') {
-          window.history.pushState('', '', `/grants/?${q || ''}`);
+        if (document.round_num) {
+          let uri = `/grants/clr/${document.round_num}/`;
+
+          if (this.current_type === 'all') {
+            window.history.pushState('', '', `${uri}?${q || ''}`);
+          } else {
+            window.history.pushState('', '', `${uri}?type=${this.current_type}&${q || ''}`);
+          }
         } else {
-          window.history.pushState('', '', `/grants/${this.current_type}?${q || ''}`);
+          let uri = '/grants/';
+
+          if (this.current_type === 'all') {
+            window.history.pushState('', '', `${uri}?${q || ''}`);
+          } else {
+            window.history.pushState('', '', `${uri}${this.current_type}?${q || ''}`);
+          }
         }
 
         if (this.current_type === 'activity') {
@@ -286,6 +298,10 @@ if (document.getElementById('grants-showcase')) {
 
         if (this.show_contributions) {
           base_params['only_contributions'] = this.show_contributions;
+        }
+
+        if (document.round_num) {
+          base_params['round_num'] = document.round_num;
         }
 
         const params = new URLSearchParams(base_params).toString();
