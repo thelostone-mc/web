@@ -6,7 +6,7 @@ from os.path import basename
 from secrets import token_hex
 
 from django.conf import settings
-from django.contrib.staticfiles.storage import HashedFilesMixin
+from django.contrib.staticfiles.storage import HashedFilesMixin, ManifestFilesMixin
 from django.core.files.storage import get_storage_class
 
 from storages.backends.s3boto3 import S3ManifestStaticStorage, S3StaticStorage
