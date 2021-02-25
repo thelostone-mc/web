@@ -4,8 +4,8 @@ const payWithXinfinExtension = async (fulfillment_id, to_address, vm, modal) => 
   const token_name = vm.bounty.token_name;
 
   // 1. init rsk provider
-  const xinfinHost = "https://rpc.apothem.network";
-  // const xinfinHost = "https://rpc.xinfin.network";
+  // const xinfinHost = "https://rpc.apothem.network";
+  const xinfinHost = "https://rpc.xinfin.network";
   const xinfinClient = new Web3();
   xinfinClient.setProvider(
     new xinfinClient.providers.HttpProvider(xinfinHost)
@@ -30,29 +30,43 @@ const payWithXinfinExtension = async (fulfillment_id, to_address, vm, modal) => 
   }
 
   // 2. construct + sign txn via xinpay
-  let txArgs;
 
   if (token_name == 'XDC') {
 
-    balanceInWei = await xinfinClient.eth.getBalance(ethereum.selectedAddress);
+    // balanceInWei = await xinfinClient.eth.getBalance(ethereum.selectedAddress);
 
     rbtcBalance = xinfinClient.utils.fromWei(balanceInWei, 'ether');
   
-    if (Number(rbtcBalance) < amount) {
-      _alert({ message: `Insufficent balance in address ${ethereum.selectedAddress}` }, 'error');
-      return;
-    }
+    // if (Number(rbtcBalance) < amount) {
+    //   _alert({ message: `Insufficent balance in address ${ethereum.selectedAddress}` }, 'error');
+    //   return;
+    // }
 
-    txArgs = {
+    let txArgs = {
       to: to_address.toLowerCase(),
       from: ethereum.selectedAddress,
-      value: xinfinClient.utils.toHex(xinfinClient.utils.toWei(String(amount))),
-      gasPrice: xinfinClient.utils.toHex(await xinfinClient.eth.getGasPrice()),
-      gas: xinfinClient.utils.toHex(318730),
-      gasLimit: xinfinClient.utils.toHex(318730)
+      value: xinfinClient.utils.toWei(String(amount)),
+      // gasPrice: xinfinClient.utils.toHex(await xinfinClient.eth.getGasPrice()),
+      // gas: xinfinClient.utils.toHex(318730),
+      // gasLimit: xinfinClient.utils.toHex(318730)
     };
 
+    xinfinClient.eth.sendTransaction(
+      txArgs,
+      (error, result) => callback(error, ethereum.selectedAddress, result)
+    );
+
   } else {
+
+    const amountInWei = amount * 1.0 * Math.pow(10, vm.decimals);
+    const amountAsString = new xinfinClient.utils.BN(BigInt(amountInWei)).toString();
+    const token_contract = new xinfinClient.eth.Contract(token_abi, vm.bounty.token_address);
+
+
+    token_contract.methods.transfer(to_address, xinfinClient.utils.toHex(amountAsString)).send(
+      { from: ethereum.selectedAddress },
+      (error, result) => callback(error, result)
+    );
 
     tokenContract = new xinfinClient.eth.Contract(token_abi, vm.bounty.token_address);
 
@@ -69,24 +83,24 @@ const payWithXinfinExtension = async (fulfillment_id, to_address, vm, modal) => 
     amountAsString = new xinfinClient.utils.BN(BigInt(amountInWei)).toString();
     data = tokenContract.methods.transfer(to_address.toLowerCase(), amountAsString).encodeABI();
 
-    txArgs = {
-      to: vm.bounty.token_address,
-      from: ethereum.selectedAddress,
-      gasPrice: xinfinClient.utils.toHex(await xinfinClient.eth.getGasPrice()),
-      gas: xinfinClient.utils.toHex(318730),
-      gasLimit: xinfinClient.utils.toHex(318730),
-      data: data
-    };
+    // let txArgs = {
+    //   to: vm.bounty.token_address,
+    //   from: ethereum.selectedAddress,
+    //   gasPrice: xinfinClient.utils.toHex(await xinfinClient.eth.getGasPrice()),
+    //   gas: xinfinClient.utils.toHex(318730),
+    //   gasLimit: xinfinClient.utils.toHex(318730),
+    //   data: data
+    // };
   }
 
-  const txHash = await ethereum.request(
-    {
-      method: 'eth_sendTransaction',
-      params: [txArgs],
-    }
-  );
+  // const txHash = await ethereum.request(
+  //   {
+  //     method: 'eth_sendTransaction',
+  //     params: [txArgs],
+  //   }
+  // );
 
-  callback(null, ethereum.selectedAddress, txHash)
+  // callback(null, ethereum.selectedAddress, txHash)
 
   function callback(error, from_address, txn) {
     if (error) {

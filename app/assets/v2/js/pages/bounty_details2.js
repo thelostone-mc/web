@@ -143,7 +143,8 @@ Vue.mixin({
           break;
 
         case 'XDC':
-          url = `https://explorer.xinfin.network/tx/${txn}`
+          url = `https://explorer.xinfin.network/tx/${txn}`;
+          break;
 
         default:
           url = `https://etherscan.io/tx/${txn}`;
@@ -200,7 +201,8 @@ Vue.mixin({
           break;
 
         case 'XDC':
-          url = `https://explorer.xinfin.network/addr/${address}`
+          url = `https://explorer.xinfin.network/addr/${address}`;
+          break;
 
         default:
           url = `https://etherscan.io/address/${address}`;
