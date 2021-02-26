@@ -39,10 +39,11 @@
 }
 
 #onboarding_v2.modal {
-  overflow: visible;
+  overflow: scroll;
 }
+
 #onboarding_v2 .modal-content {
-  margin-top: 256px;
+  margin-top: 24rem;
 }
 
 .no-bg {
@@ -63,10 +64,6 @@
   height: 600px;
   width: 110vw;
   right: calc(50% - 55vw);
-}
-
-.height-auto {
-  height: auto;
 }
 
 @media only screen and (max-width:992px) {
